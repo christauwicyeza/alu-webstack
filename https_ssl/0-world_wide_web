@@ -1,11 +1,40 @@
 #!/usr/bin/env bash
-# A script that display information about subdomains
 
-if [ "$#" -eq 2 ]; then
-    dig "$2.$1" | awk '/ANSWER SECTION:/{getline; printf "The subdomain %s is a %s record and points to %s\n", var, $4, $5}' var="$2"
+# Define a function that takes a string as an argument and returns the third word in the string, which is the record type
+function get_record_type {
+    local record_type=$(echo "$1" | awk '{print $4}')
+    echo "$record_type"
+}
+
+# Define a function that takes a string as an argument and returns the fourth word in the string, which is the destination
+function get_destination {
+    local destination=$(echo "$1" | awk '{print $5}')
+    echo "$destination"
+}
+
+# Assign the first command-line argument to a variable called domain
+domain="$1"
+
+# Assign the second command-line argument to a variable called subdomain
+subdomain="$2"
+
+# If the subdomain variable is empty, assign an array of four subdomains to a variable called subdomains
+if [[ -z "$subdomain" ]]; then
+    subdomains=("www" "lb-01" "web-01" "web-02")
 else
-    for i in "www" "lb-01" "web-01" "web-02"
-	do
-	    dig "$i.$1" | awk '/ANSWER SECTION:/{getline; printf "The subdomain %s is a %s record and points to %s\n", var, $4, $5}' var="$i"
-	done
+    # Otherwise, assign the subdomain variable to an array called subdomains
+    subdomains=("$subdomain")
 fi
+
+# Loop over each element in the subdomains array
+for subdomain in "${subdomains[@]}"; do
+     # Use the dig command to query the DNS record for the subdomain and domain combination and assign the output to a variable called record
+    record="$(dig "$subdomain.$domain" | grep -A1 "ANSWER SECTION:" |awk 'NR==2')"
+     # Call the get_record_type function with the record variable as an argument and assign the output to a variable called record_type
+    record_type=$(get_record_type "$record")
+    # Call the get_destination function with the record variable as an argument and assign the output to a variable called destination
+    destination=$(get_destination "$record")
+     # Print a message with the subdomain, record type and destination variables
+    echo "The subdomain $subdomain is a $record_type record and points to $destination"
+done
+
