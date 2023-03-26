@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+# A script that display information about subdomains
+
+if [ "$#" -eq 2 ]; then
+    dig "$2.$1" | awk '/ANSWER SECTION:/{getline; printf "The subdomain %s is a %s record and points to %s\n", var, $4, $5}' var="$2"
+else
+    for i in "www" "lb-01" "web-01" "web-02"
+	do
+	    dig "$i.$1" | awk '/ANSWER SECTION:/{getline; printf "The subdomain %s is a %s record and points to %s\n", var, $4, $5}' var="$i"
+	done
+fi
