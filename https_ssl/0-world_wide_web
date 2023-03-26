@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-
 # Define a function that takes a string as an argument and returns the third word in the string, which is the record type
 function get_record_type {
     local record_type=$(echo "$1" | awk '{print $4}')
